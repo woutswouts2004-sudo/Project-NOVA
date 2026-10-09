@@ -1,0 +1,23 @@
+# Offline-first local demonstration. No network and no API credentials.
+# This is not a cloud deployment; it needs a machine running Docker.
+services:
+  nova:
+    build: .
+    read_only: true
+    network_mode: none
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      NOVA_HOME: /app
+      NOVA_ENABLE_EXTERNAL_MODEL: "NO"
+    volumes:
+      - nova_data:/app/data
+      - nova_workspace:/app/workspace
+    tmpfs:
+      - /tmp:size=16m,noexec,nosuid
+    restart: "no"
+volumes:
+  nova_data:
+  nova_workspace:
