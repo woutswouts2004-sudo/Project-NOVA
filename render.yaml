@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: project-nova-chat
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: NOVA_PUBLIC_CHAT
+        value: "YES"
+      - key: NOVA_ALLOWED_ORIGIN
+        value: https://woutswouts2004-sudo.github.io
+      - key: NOVA_API_BASE
+        sync: false
+      - key: NOVA_API_KEY
+        sync: false
+      - key: NOVA_MODEL
+        sync: false
+      - key: NOVA_ENABLE_EXTERNAL_MODEL
+        value: "YES"
