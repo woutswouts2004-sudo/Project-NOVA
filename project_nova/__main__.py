@@ -1,4 +1,4 @@
-"""Command-line entry point."""
+"""Command-line entry point: no network model by default."""
 import argparse
 import json
 import os
@@ -8,6 +8,7 @@ from .agent import Agent
 from .broker import Broker
 from .llm import Model
 from .memory import Journal
+from .portable import export_archive, restore_archive
 
 def main():
     parser = argparse.ArgumentParser(description="Project NOVA")
@@ -15,12 +16,20 @@ def main():
     mode.add_argument("--once", action="store_true", help="Run one agent step (default)")
     mode.add_argument("--loop", action="store_true", help="Repeat until stopped")
     mode.add_argument("--status", action="store_true", help="Show journal status")
+    mode.add_argument("--export-backup", metavar="FILE", help="Export a portable journal archive")
+    mode.add_argument("--restore-backup", metavar="FILE", help="Restore into an empty journal")
     parser.add_argument("--interval", type=int, default=3600, help="Seconds between loop steps")
     args = parser.parse_args()
     root = Path(os.getenv("NOVA_HOME", ".")).resolve()
     journal = Journal(root / "data" / "nova.sqlite3")
     if args.status:
         print(json.dumps(journal.status(), indent=2))
+        return
+    if args.export_backup:
+        print(json.dumps(export_archive(journal, args.export_backup), indent=2))
+        return
+    if args.restore_backup:
+        print(json.dumps(restore_archive(journal, args.restore_backup), indent=2))
         return
     agent = Agent(journal, Model.from_environment(), Broker(root))
     if args.loop:
