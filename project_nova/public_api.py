@@ -12,6 +12,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from .agent import SYSTEM
 from .llm import Model
 from .local_model import LocalModel
+from .ensemble import from_environment as ensemble_from_environment
 
 MAX_BODY = 12_000
 MAX_MESSAGE = 3_000
@@ -124,7 +125,7 @@ def main():
     if os.getenv("NOVA_PUBLIC_CHAT") != "YES":
         raise SystemExit("Public chat is disabled. Set NOVA_PUBLIC_CHAT=YES to opt in.")
     local = os.getenv("NOVA_LOCAL_MODEL", "").strip()
-    model = LocalModel(local) if local else Model.from_environment()
+    model = ensemble_from_environment() or (LocalModel(local) if local else Model.from_environment())
     if not model.enabled:
         raise SystemExit("Configure a model before starting the public server.")
     host = os.getenv("NOVA_BIND", "127.0.0.1")
