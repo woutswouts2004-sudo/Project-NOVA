@@ -28,6 +28,9 @@ Without configuration the agent runs in **demo mode** and does not call a model.
 ## Try the conversational interface
 Run `python -m project_nova --chat` for local chat or `python -m project_nova --ask "Hello"` for a single turn. Until a model is configured, these commands explicitly return demo output. See `docs/FREE_MODEL.md` for a potential free inference provider. Never commit an API key.
 
+## No-account local model option
+Set `NOVA_LOCAL_MODEL` to an installed Ollama model name to use a local open-weight model without a cloud API key. See `docs/LOCAL_MODEL.md`. This requires an authorized machine capable of running the model; it is not available on GitHub by itself.
+
 ## Additional foundations
 - Explicit consent registry for future private data integrations, denying access by default.
 - Rotating independent goals with workspace artifacts and portable, checksum-verified journal backups.
