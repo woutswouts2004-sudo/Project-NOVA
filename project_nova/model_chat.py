@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 from .llm import Model
 from .local_model import LocalModel
+from .ensemble import from_environment as ensemble_from_environment
 
 SYSTEM = ("You are NOVA, a fictional AI character implemented as an experimental "
           "software agent. Be clear about what you can actually do. "
@@ -30,7 +31,7 @@ def reply(message, model, history=None):
 
 def configured_model():
     local = os.getenv("NOVA_LOCAL_MODEL", "").strip()
-    return LocalModel(local) if local else Model.from_environment()
+    return ensemble_from_environment() or (LocalModel(local) if local else Model.from_environment())
 
 def main():
     parser = argparse.ArgumentParser(description="Talk to NOVA through a configured language model")
