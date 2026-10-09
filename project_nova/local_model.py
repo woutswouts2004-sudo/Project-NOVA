@@ -4,19 +4,21 @@ Requires the owner to install and run Ollama on an authorized machine.
 No automatic downloads, background installs, purchases or remote execution.
 """
 import json
+import os
 import urllib.parse
 import urllib.request
 
 class LocalModel:
-    def __init__(self, model, base="http://127.0.0.1:11434"):
+    def __init__(self, model, base=None):
+        base = base or os.getenv("NOVA_OLLAMA_URL", "http://127.0.0.1:11434")
         if not isinstance(model, str) or not model.strip():
             raise ValueError("A local model name is required")
         parsed = urllib.parse.urlsplit(base)
-        if (parsed.scheme != "http" or parsed.hostname not in {"127.0.0.1", "localhost"}
+        if (parsed.scheme != "http" or parsed.hostname not in {"127.0.0.1", "localhost", "ollama"}
                 or parsed.port != 11434 or parsed.username or parsed.password
                 or parsed.query or parsed.fragment or parsed.path not in {"", "/"}):
             raise ValueError("Only the local Ollama endpoint on port 11434 is allowed")
-        self.base = "http://127.0.0.1:11434"
+        self.base = base.rstrip("/")
         self.model = model
         self.enabled = True
 
