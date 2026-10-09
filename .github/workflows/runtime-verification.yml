@@ -1,0 +1,35 @@
+name: NOVA runtime verification
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'Dockerfile'
+      - 'compose.live.yaml'
+      - 'project_nova/**'
+      - 'policy/**'
+      - 'tests/**'
+      - '.github/workflows/runtime-verification.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run Python tests
+        run: python -m unittest discover -s tests -v
+      - name: Validate Docker Compose
+        run: docker compose -f compose.live.yaml config --quiet
+      - name: Build NOVA container
+        run: docker build -t nova-verify .
+      - name: Validate model-free server startup gate
+        run: |
+          if docker run --rm nova-verify python -m project_nova.public_api > /tmp/nova-startup.txt 2>&1; then
+            echo "Server unexpectedly started without opt-in"
+            exit 1
+          fi
+          grep -q "Public chat is disabled" /tmp/nova-startup.txt
