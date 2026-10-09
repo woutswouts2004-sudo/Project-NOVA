@@ -1,0 +1,70 @@
+name: NOVA Owner File Change
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Repository-relative file path (e.g. docs/notes.md)'
+        required: true
+        type: string
+      content:
+        description: 'Full replacement text (max 10000 characters)'
+        required: true
+        type: string
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  propose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Stage requested change in a new branch
+        env:
+          NOVA_TARGET: ${{ inputs.target }}
+          NOVA_CONTENT: ${{ inputs.content }}
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          target = os.environ["NOVA_TARGET"]
+          content = os.environ["NOVA_CONTENT"]
+          root = Path.cwd().resolve()
+          path = (root / target).resolve()
+          if path == root or not path.is_relative_to(root):
+              raise SystemExit("Invalid repository path")
+          if target.startswith(".github/") or target.startswith("policy/") or target.startswith("identity/"):
+              raise SystemExit("Protected file; change manually")
+          if path.name in {".env", ".env.example"} or path.suffix in {".key", ".pem"}:
+              raise SystemExit("Credential files are excluded")
+          if len(content) > 10000:
+              raise SystemExit("Content exceeds input limit")
+          if path.suffix == ".py":
+              compile(content, target, "exec")
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text(content, encoding="utf-8")
+          PY
+      - name: Test Python code
+        run: python -m unittest discover -s tests -v
+      - name: Open reviewable pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOVA_TARGET: ${{ inputs.target }}
+        run: |
+          branch="nova/owner-change-${{ github.run_id }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add -- "$NOVA_TARGET"
+          if git diff --cached --quiet; then
+            echo "No file change"
+            exit 0
+          fi
+          git commit -m "NOVA owner-requested change"
+          git push origin "$branch"
+          gh pr create --base main --head "$branch" --title "NOVA: owner-requested file update" --body "Owner-triggered file replacement. Review the diff before merging."
