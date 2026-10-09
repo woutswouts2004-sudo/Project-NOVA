@@ -1,0 +1,43 @@
+# Persistent local NOVA stack. Requires a Docker host with sufficient memory.
+# After startup, pull the model: docker compose -f compose.live.yaml exec ollama ollama pull qwen2.5:3b
+services:
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    volumes:
+      - ollama-models:/root/.ollama
+    networks:
+      - nova-private
+  chat:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      - ollama
+    environment:
+      NOVA_PUBLIC_CHAT: "YES"
+      NOVA_LOCAL_MODEL: "qwen2.5:3b"
+      NOVA_OLLAMA_URL: "http://ollama:11434"
+      NOVA_ALLOWED_ORIGIN: "https://woutswouts2004-sudo.github.io"
+      NOVA_BIND: "0.0.0.0"
+    ports:
+      - "127.0.0.1:8080:8080"
+    networks:
+      - nova-private
+  worker:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      - ollama
+    command: ["python", "-m", "project_nova.daemon", "--home", "/data", "--interval", "3600"]
+    environment:
+      NOVA_LOCAL_MODEL: "qwen2.5:3b"
+      NOVA_OLLAMA_URL: "http://ollama:11434"
+    volumes:
+      - nova-memory:/data
+    networks:
+      - nova-private
+volumes:
+  ollama-models:
+  nova-memory:
+networks:
+  nova-private:
