@@ -2,6 +2,7 @@
 import argparse
 from pathlib import Path
 from .nova_model import Config, encode, build_model, save_checkpoint, torch_lib
+from .dataset_manifest import load_manifest
 
 def read_corpus(path):
     path = Path(path)
@@ -12,7 +13,10 @@ def read_corpus(path):
         raise ValueError("At least 512 UTF-8 bytes are required")
     return text
 
-def train(corpus, output, steps=100, batch_size=8, seed=7, config=None):
+def train(corpus, output, steps=100, batch_size=8, seed=7, config=None, manifest=None):
+    if not manifest:
+        raise ValueError('Training requires an approved dataset manifest')
+    load_manifest(manifest)
     torch, _ = torch_lib()
     config = (config or Config()).validate()
     if not (1 <= steps <= 100000 and 1 <= batch_size <= 64):
@@ -43,13 +47,14 @@ def train(corpus, output, steps=100, batch_size=8, seed=7, config=None):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--corpus", required=True)
+    p.add_argument("--manifest", required=True)
     p.add_argument("--output", required=True)
     p.add_argument("--steps", type=int, default=100)
     p.add_argument("--batch-size", type=int, default=8)
     p.add_argument("--context", type=int, default=128)
     args = p.parse_args()
     train(args.corpus, args.output, steps=args.steps, batch_size=args.batch_size,
-          config=Config(context=args.context))
+          config=Config(context=args.context), manifest=args.manifest)
 
 if __name__ == "__main__":
     main()
