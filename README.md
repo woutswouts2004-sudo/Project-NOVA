@@ -25,6 +25,9 @@ Without configuration the agent runs in **demo mode** and does not call a model.
 - `docs/ROADMAP.md`: hardening and hosting steps.
 - `tests/`: offline tests.
 
+## Try the conversational interface
+Run `python -m project_nova --chat` for local chat or `python -m project_nova --ask "Hello"` for a single turn. Until a model is configured, these commands explicitly return demo output. See `docs/FREE_MODEL.md` for a potential free inference provider. Never commit an API key.
+
 ## Additional foundations
 - Explicit consent registry for future private data integrations, denying access by default.
 - Rotating independent goals with workspace artifacts and portable, checksum-verified journal backups.
