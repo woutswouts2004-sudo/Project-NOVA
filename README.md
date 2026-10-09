@@ -25,6 +25,13 @@ Without configuration the agent runs in **demo mode** and does not call a model.
 - `docs/ROADMAP.md`: hardening and hosting steps.
 - `tests/`: offline tests.
 
+## Additional foundations
+- Explicit consent registry for future private data integrations, denying access by default.
+- Rotating independent goals with workspace artifacts and portable, checksum-verified journal backups.
+- Offline Docker demonstration using a non-root account, a read-only root filesystem and no network.
+- Python tests can be run locally; GitHub Actions is manual-only to reduce unexpected runner usage.
+- Read `docs/DEPLOYMENT.md`, `docs/OPERATIONS.md`, `docs/SELF_MODIFICATION.md`, and `identity/PRINCIPLES.md`.
+
 ## Security and autonomy
 The AI is intended to be free to develop its identity and propose code changes. It is not permitted to access systems without authorization, hide in third-party infrastructure, purchase resources, or override owner-controlled capability boundaries. Private data requires scoped, revocable consent. The prototype does not yet self-edit or deploy code automatically.
 
