@@ -1,6 +1,12 @@
 name: Python tests
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'project_nova/**'
+      - 'tests/**'
+      - '.github/workflows/tests.yml'
 permissions:
   contents: read
 jobs:
