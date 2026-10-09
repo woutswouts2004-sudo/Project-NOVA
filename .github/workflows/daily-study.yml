@@ -1,0 +1,36 @@
+name: NOVA daily public study
+on:
+  schedule:
+    - cron: '17 15 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: nova-public-study
+  cancel-in-progress: false
+jobs:
+  publish-study:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run offline tests
+        run: python -m unittest discover -s tests -v
+      - name: Produce public study
+        env:
+          NOVA_ENABLE_EXTERNAL_MODEL: "NO"
+        run: python -m project_nova.public_studies --root .
+      - name: Publish only generated public notes
+        run: |
+          git config user.name "nova-study-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/field-notes/
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish NOVA daily study"
+            git push
+          fi
