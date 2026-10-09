@@ -8,6 +8,7 @@ from .agent import Agent
 from .conversation import interactive_chat, converse
 from .broker import Broker
 from .llm import Model
+from .local_model import LocalModel
 from .memory import Journal
 from .portable import export_archive, restore_archive
 
@@ -34,7 +35,8 @@ def main():
     if args.restore_backup:
         print(json.dumps(restore_archive(journal, args.restore_backup), indent=2))
         return
-    model = Model.from_environment()
+    local_name = os.getenv('NOVA_LOCAL_MODEL', '').strip()
+    model = LocalModel(local_name) if local_name else Model.from_environment()
     if args.chat:
         interactive_chat(journal, model)
         return
