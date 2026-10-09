@@ -28,12 +28,12 @@ services:
     restart: unless-stopped
     depends_on:
       - ollama
-    command: ["python", "-m", "project_nova.daemon", "--home", "/data", "--interval", "3600"]
+    command: ["python", "-m", "project_nova.daemon", "--home", "/app/data", "--interval", "3600"]
     environment:
       NOVA_LOCAL_MODEL: "qwen2.5:3b"
       NOVA_OLLAMA_URL: "http://ollama:11434"
     volumes:
-      - nova-memory:/data
+      - nova-memory:/app/data
     networks:
       - nova-private
 volumes:
