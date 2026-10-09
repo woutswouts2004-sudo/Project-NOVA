@@ -50,7 +50,25 @@ function tab(id){tabs.forEach(b=>b.setAttribute("aria-selected",String(b.dataset
 tabs.forEach(b=>b.addEventListener("click",()=>tab(b.dataset.tab)));
 function add(role,body){state.messages.push({role,body:String(body).slice(0,6000),at:new Date().toISOString()});state.messages=state.messages.slice(-100);save();renderMessages();}
 function renderMessages(){const root=$("messages");root.replaceChildren();if(!state.messages.length){const p=document.createElement("p");p.textContent="Welcome. You can try the interface here. Until a model-backed server is connected, responses are only demonstrations.";root.append(p);}for(const m of state.messages){const div=document.createElement("div");div.className="bubble "+(m.role==="user"?"user":"assistant");const who=document.createElement("span");who.className="who";who.textContent=m.role==="user"?"You":"NOVA · demonstration";div.append(who,document.createTextNode(m.body));root.append(div);}root.scrollTop=root.scrollHeight;}
-$("chat-form").addEventListener("submit",function(e){e.preventDefault();const field=$("message");const value=field.value.trim();if(!value)return;add("user",value);field.value="";add("assistant","DEMO MODE: I received your message in this browser. A real language model is not connected to this public website yet, so I cannot provide an independently generated reply. Your message has been recorded only in this browser's local journal.");field.focus();});
+let backend=null;
+(async()=>{try{const res=await fetch("backend.json",{cache:"no-store"});if(!res.ok)return;const cfg=await res.json();if(cfg.enabled===true&&typeof cfg.api_base==="string"&&/^https:\/\/[^/@?#]+(?:\/[^?#]*)?$/.test(cfg.api_base)){backend=cfg.api_base.replace(/\/$/,"");$("status").textContent="AI API configured";$("notice").textContent="AI service configured. Responses may be processed by an external model provider. Do not share sensitive information.";}}catch(e){}})();
+$("chat-form").addEventListener("submit",async function(e){
+ e.preventDefault();const field=$("message");const value=field.value.trim();if(!value)return;
+ const history=state.messages.slice(-8).map(m=>({role:m.role,content:m.body}));
+ add("user",value);field.value="";
+ const submit=$("chat-form").querySelector("button[type=submit]");submit.disabled=true;
+ try{
+  if(!backend){add("assistant","DEMO MODE: I received your message in this browser. A real language model is not connected to this public website yet. Your message is saved only in this browser's local journal.");return;}
+  const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),30000);
+  try{
+   const res=await fetch(backend+"/v1/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:value,history}),signal:controller.signal});
+   const data=await res.json();
+   if(!res.ok||typeof data.reply!=="string")throw Error(data.error||"AI service unavailable");
+   add("assistant",data.reply);
+  }finally{clearTimeout(timeout);}
+ }catch(err){add("assistant","SERVICE ERROR: "+(err.name==="AbortError"?"Request timed out.":String(err.message).slice(0,180))+" No generated reply was received.");}
+ finally{submit.disabled=false;field.focus();}
+});
 $("message").addEventListener("keydown",function(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("chat-form").requestSubmit();}});
 $("clear-chat").addEventListener("click",()=>{if(confirm("Clear this browser's conversation?")){state.messages=[];save();renderMessages();}});
 function renderGoals(){const root=$("goals-list");root.replaceChildren();areas.forEach(([title,prompt])=>{const div=document.createElement("div");div.className="item";const strong=document.createElement("strong");strong.textContent=title;div.append(strong,document.createTextNode(prompt));root.append(div);});}
