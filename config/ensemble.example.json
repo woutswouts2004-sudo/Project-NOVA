@@ -1,0 +1,10 @@
+{
+  "mode": "collaborate",
+  "models": [
+    {"role": "general", "base": "https://router.huggingface.co/v1", "model": "openai/gpt-oss-120b", "key_env": "NOVA_HF_TOKEN"},
+    {"role": "reasoning", "base": "https://router.huggingface.co/v1", "model": "deepseek-ai/DeepSeek-R1", "key_env": "NOVA_HF_TOKEN"},
+    {"role": "coding", "base": "https://router.huggingface.co/v1", "model": "Qwen/Qwen3-Coder-480B-A35B-Instruct", "key_env": "NOVA_HF_TOKEN"},
+    {"role": "creative", "base": "https://router.huggingface.co/v1", "model": "zai-org/GLM-4.5", "key_env": "NOVA_HF_TOKEN"},
+    {"role": "review", "base": "https://router.huggingface.co/v1", "model": "openai/gpt-oss-120b", "key_env": "NOVA_HF_TOKEN"}
+  ]
+}
