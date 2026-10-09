@@ -8,3 +8,7 @@ data/
 workspace/
 *.log
 .pytest_cache/
+
+*backup*.json
+*.db
+*.db-*
