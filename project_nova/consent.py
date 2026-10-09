@@ -35,7 +35,7 @@ class ConsentRegistry:
                 continue
             if grant.get("source") != source or grant.get("resource") != resource:
                 continue
-            if purpose not in grant.get("purposes", []):
+            if not isinstance(grant.get("purposes"), list) or purpose not in grant["purposes"]:
                 continue
             if grant.get("revoked", True):
                 continue
