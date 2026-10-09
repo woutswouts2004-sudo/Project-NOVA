@@ -19,7 +19,8 @@ class FoundationTests(unittest.TestCase):
     def test_demo_journals(self):
         result = Agent(self.journal, Model(), self.broker).step()
         self.assertEqual(result["mode"], "demo")
-        self.assertEqual(self.journal.status()["events"], 1)
+        self.assertEqual(self.journal.status()["events"], 3)
+        self.assertTrue((self.root / "workspace" / result["artifact"]).is_file())
 
     def test_notes_within_workspace(self):
         self.assertEqual(self.broker.write_note("ideas/one.md", "hello")["saved"], "ideas/one.md")
