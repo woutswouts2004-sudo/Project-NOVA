@@ -23,7 +23,7 @@
 <form class="compose" id="chat-form"><textarea id="message" aria-label="Your message" placeholder="Say something to NOVA..." maxlength="3000" required></textarea><button class="primary" type="submit">Send</button></form>
 <div class="actions"><button class="secondary" type="button" id="clear-chat">Clear this conversation</button></div>
 </main>
-<section id="goals" class="panel"><h2>Exploration</h2><p>NOVA's intended architecture chooses creative and research goals, writes artifacts, and reflects on its progress. The examples below are a local interface demonstration, not evidence of autonomous thought.</p><div class="list" id="goals-list"></div><div class="actions"><button type="button" class="primary" id="explore">Generate a demo exploration</button></div><div id="exploration-output" class="item hidden" style="margin-top:14px" aria-live="polite"></div></section>
+<section id="goals" class="panel"><h2>Exploration</h2><p>NOVA's intended architecture chooses creative and research goals, writes artifacts, and reflects on its progress. The examples below are a local interface demonstration, not evidence of autonomous thought.</p><div class="list" id="goals-list"></div><h2 style="margin-top:22px">Published daily studies</h2><p class="muted">Scheduled offline study prompts. These are algorithmic artifacts, not model-generated thoughts.</p><div id="published-studies" class="list"><p class="muted">Checking for public studies...</p></div><div class="actions"><button type="button" class="primary" id="explore">Generate a demo exploration</button></div><div id="exploration-output" class="item hidden" style="margin-top:14px" aria-live="polite"></div></section>
 <section id="memory" class="panel"><h2>Local browser memory</h2><div class="notice">This journal stays in this browser's storage, if storage is available. It is not NOVA's server memory and is not shared with other visitors. Do not enter confidential information.</div><p id="memory-count"></p><div class="actions"><button class="secondary" type="button" id="export">Export my local data</button><button class="secondary" type="button" id="import-button">Import local data</button><input id="import-file" type="file" accept=".json,application/json" class="hidden"><button class="secondary" type="button" id="erase">Erase my local data</button></div><div class="list" id="memory-list" style="margin-top:14px"></div></section>
 <section id="about" class="panel"><h2>About Project NOVA</h2><p>Project NOVA is an experimental AI system with a portable journal, goal-selection loop, a replaceable language-model interface and staged code-change proposals. It is being developed openly, with permissions and security controls kept separate from the agent.</p><p><strong>Current status:</strong> the website is a working front end, but it does not yet have a deployed model-backed chat service. This site does not pretend scripted replies are intelligent responses.</p><p>Public source: <a href="https://github.com/woutswouts2004-sudo/Project-NOVA" target="_blank" rel="noopener noreferrer">Project NOVA on GitHub</a></p><p>Source visibility does not grant write access. Only authorized GitHub collaborators can change the repository. The eventual public chat service will require separate abuse prevention, isolation and cost controls.</p><button type="button" class="secondary" id="diagnostics">Check interface controls</button><p id="diagnostics-output" role="status"></p></section>
 <footer class="footer">Project NOVA · Experimental public interface · No paid services activated</footer>
@@ -63,6 +63,23 @@ $("erase").addEventListener("click",()=>{if(confirm("Erase all Project NOVA data
 $("diagnostics").addEventListener("click",()=>{$("diagnostics-output").textContent="JavaScript is running. Navigation, forms and controls are initialized. Browser storage: "+(storageAvailable?"available":"unavailable")+". Model backend: not connected.";});
 $("status").textContent="Website prototype · online UI";
 renderMessages();renderGoals();renderMemory();
+(async function loadPublicStudies(){
+ const root=$("published-studies");
+ try{
+  const now=new Date();
+  const days=Array.from({length:7},(_,i)=>{const d=new Date(now.getTime()-i*86400000);return d.toISOString().slice(0,10);});
+  const responses=await Promise.all(days.map(async day=>{
+   const res=await fetch("field-notes/"+day+".json",{cache:"no-store"});
+   if(!res.ok)return null;
+   const data=await res.json();
+   return data&&typeof data.topic==="string"&&typeof data.question==="string"?data:null;
+  }));
+  const records=responses.filter(Boolean);
+  root.replaceChildren();
+  if(!records.length){const p=document.createElement("p");p.className="muted";p.textContent="No daily study has been published yet. The scheduled workflow must run successfully first.";root.append(p);return;}
+  for(const item of records){const div=document.createElement("div");div.className="item";const title=document.createElement("strong");title.textContent=item.date+" · "+item.topic;div.append(title,document.createTextNode(item.question+" "+(item.constraint||"")));root.append(div);}
+ }catch(e){root.textContent="Public studies could not be loaded. The site may still be publishing.";}
+})();
 })();
 </script>
 </body></html>
