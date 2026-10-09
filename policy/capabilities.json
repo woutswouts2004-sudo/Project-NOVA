@@ -1,0 +1,9 @@
+{
+  "allowed": ["workspace_write", "public_research"],
+  "denied": [
+    "purchase", "payments", "private_records_without_consent",
+    "unauthorized_access", "stealth_installation", "credential_access",
+    "shell_execution", "deployment", "policy_modification"
+  ],
+  "notes": "Defense in depth required. This file is NOT immutable when the agent can edit or deploy its own runtime."
+}
