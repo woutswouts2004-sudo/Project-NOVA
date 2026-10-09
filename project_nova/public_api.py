@@ -19,6 +19,7 @@ MAX_HISTORY = 8
 WINDOW_SECONDS = 3600
 MAX_REQUESTS = 12
 _lock = threading.Lock()
+_model_slots = threading.BoundedSemaphore(2)
 _requests = defaultdict(deque)
 
 def safe_messages(value):
@@ -108,7 +109,12 @@ def make_handler(model):
             try:
                 if not model.enabled:
                     return self.send_json(503, {"error": "Language model not configured"})
-                answer = model.respond(SYSTEM, prompt)
+                if not _model_slots.acquire(blocking=False):
+                    return self.send_json(503, {"error": "Server busy; retry later"})
+                try:
+                    answer = model.respond(SYSTEM, prompt)
+                finally:
+                    _model_slots.release()
                 self.send_json(200, {"reply": answer, "mode": "model"})
             except Exception:
                 self.send_json(502, {"error": "Model temporarily unavailable"})
