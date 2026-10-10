@@ -1,0 +1,9 @@
+{
+  "date": "2026-10-10",
+  "topic": "Software architecture",
+  "question": "How can an agent explain its own decisions?",
+  "constraint": "Explore silence through the idea of a square.",
+  "method": "Create three variations, changing one variable at a time.",
+  "kind": "algorithmically generated study prompt",
+  "model_used": false
+}
